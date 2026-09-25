@@ -1,0 +1,13 @@
+[project]
+name = "miel-abeilles"
+version = "0.1.0"
+description = "Genetic algorithm solving a TSP over a field of 50 flowers"
+readme = "README.md"
+authors = [
+    { name = "Hiba Trabelsi", email = "hiba.trabelsi@laplateforme.io" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "matplotlib>=3.9.4",
+    "numpy>=2.0.2",
+]
