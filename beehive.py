@@ -74,6 +74,7 @@ class Beehive:
         self.nb_flowers = len(flowers)
         self.distances = build_distance_matrix(flowers)
         self.bees = []
+        self.history = []
         self.rng = np.random.default_rng(seed)
 
     def init_bee(self):
@@ -85,6 +86,7 @@ class Beehive:
         """Build the starting colony, best bee first"""
         self.bees = [self.init_bee() for _ in range(NB_BEES)]
         self.bees.sort()
+        self.record()
 
     def next_generation(self):
         """Replace the colony by the elite plus their offdpring."""
@@ -99,11 +101,17 @@ class Beehive:
             new_bees.append(Bee(order, 
                                 path_length(order, self.distances),
                                 parents=(mother.id, father.id)))
-            self.bees = sorted(new_bees)
+        self.bees = sorted(new_bees)
+        self.record()
 
     def average_distance(self):
         return sum(bee.distance for bee in self.bees) / len(self.bees)
 
+    def record(self):
+        """Append (average, best) of the current colony to the history"""
+        self.history.append((self.average_distance(),
+self.bees[0].distance))
+        
     def print_average_distance(self):
         print(f"{self.average_distance():.0f}")
 

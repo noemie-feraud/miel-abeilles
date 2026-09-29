@@ -2,7 +2,7 @@
 
 from beehive import Beehive, load_field
 from config import FLOWERS_PATH, NB_GENERATIONS
-
+from plots import plot_convergence, plot_field, plot_tour
 
 def main():
     hive = Beehive(load_field(FLOWERS_PATH), seed=0)
@@ -24,6 +24,10 @@ def main():
             )
 
     print("best bee:", hive.bees[0])
+    best = hive.bees[0]
+    plot_field(hive.flowers)
+    plot_convergence(hive.history)
+    plot_tour(hive.flowers, best.order, best.distance)
 
 
 if __name__ == "__main__":
