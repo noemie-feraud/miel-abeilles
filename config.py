@@ -8,3 +8,11 @@ NB_BEES = 100
 
 # Where the flower coordinates live.
 FLOWERS_PATH = "data/flowers.csv"
+
+# How many generations to run.
+NB_GENERATIONS = 100
+
+# Genetic algorithm parameters.
+NB_ELITES = 10          # best bees carried over untouched
+TOURNAMENT_SIZE = 3     # selection pressure
+MUTATION_RATE = 0.3     # probability of mutating a newborn
