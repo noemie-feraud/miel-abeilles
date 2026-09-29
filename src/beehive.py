@@ -1,3 +1,5 @@
+import random
+
 from bee import Bee
 from config import NB_BEES
 
@@ -15,11 +17,10 @@ class Beehive:
         self.bees = []
         for _ in range(self.size):
             new_bee = Bee(self.flower)
-            new_bee.compute_path_length()
+            new_bee.calculate_distance()
             self.bees.append(new_bee)
 
-    # Alias au cas où la méthode est appelée au singulier
-    init_bee = init_bees
+    
 
     def print_average_distance(self):
         """Calcule et affiche la distance moyenne parcourue par les abeilles de la ruche."""
@@ -32,12 +33,37 @@ class Beehive:
         print(f"Distance moyenne : {average:.2f}")
         return average
 
-    # Alias au cas où l'ancien nom de beehive2 est utilisé
-    print_average_path_length = print_average_distance
-
     def next_generation(self):
-        """Prépare la génération suivante d'abeilles (pour la suite du projet)."""
-        pass
+        """ la génération suivante d'abeilles.
+        methoide pour trier les abeilles selon leur distance 
+        distance la plus courte en premier  """
+
+        def key_distance(bee):
+            return bee.distance
+        
+        self.bees.sort(key=key_distance)
+        self.queen = self.bees[0]
+
+        """ On garde les 20 abeilles les plus performantes et on en initialise 81 autres pour ruche= 101
+        parent en random """
+        
+        perform = self.bees[:20]
+
+        for _ in range(81):
+
+            parent1 = random.choice(perform)
+            parent2 = random.choice(perform)
+
+            chemin_enfant = list(parent1.path[:25])  # la moitié des 50 fleurs
+
+            for flower in parent2.path:
+                if flower not in chemin_enfant:
+                    chemin_enfant.append(flower)
+
+        
+
+
+        
 
     def __str__(self):
         return f"Beehive(abeilles={len(self.bees)}, fleurs={len(self.flower)})"

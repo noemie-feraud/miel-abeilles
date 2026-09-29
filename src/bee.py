@@ -46,8 +46,22 @@ class Bee:
         self.distance = length
         return length
 
-    # Alias pour compatibilité
-    calculate_distance = compute_path_length
+    def mutate (self):
+        
+        """Échange deux fleurs au hasard dans le chemin de l'abeille."""
+        
+        fist_f = random.randint(0, len(self.path) - 1)
+        last_f = random.randint(0, len(self.path) - 1)
+        
+        # On inverse les deux fleurs
+        self.path[fist_f], self.path[last_f] = self.path[last_f], self.path[fist_f]
+        
+        # On recalcule sa nouvelle distance
+        self.compute_path_length()
+
+
+
+
 
     def __str__(self):
         return f"Bee(distance={self.distance:.2f})"
@@ -60,18 +74,3 @@ class Bee:
         
 
 
-# DANS LA CLASSE Bee :
-
-#     METHODE calculate_distance():
-#         1. On part du point fixe de la ruche : (500, 500)
-#         2. On initialise la distance_totale à 0
-
-#         3. POUR CHAQUE fleur DANS self.path:
-#             - Calculer la distance entre la position actuelle et cette fleur
-#               Formule : √((x2 - x1)² + (y2 - y1)²)
-#             - Ajouter cette distance à distance_totale
-#             - La fleur devient la nouvelle position actuelle
-
-#         4. Ajouter la distance du retour : dernière fleur -> ruche (500, 500)
-
-#         5. Stocker le résultat dans self.distance et le retourner
