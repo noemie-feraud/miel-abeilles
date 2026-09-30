@@ -4,7 +4,7 @@ import numpy as np
 from config import BEEHIVE_POSITION
 from bee import Bee
 from config import NB_BEES
-from config import BEEHIVE_POSITION, NB_BEES, NB_ELITES, TOURNAMENT_SIZE, MUTATION_RATE 
+from config import NB_GENERATIONS, BEEHIVE_POSITION, NB_BEES, NB_ELITES, TOURNAMENT_SIZE, MUTATION_RATE 
 
 
 def load_field(path):
@@ -76,7 +76,7 @@ class Beehive:
     """Owns the flower field, the distance matrix, and the colony."""
     def __init__(self, flowers, seed=None, nb_bees=NB_BEES, nb_elites=NB_ELITES,
                  tournament_size=TOURNAMENT_SIZE, mutation_rate=MUTATION_RATE,
-                 mutate=mutate_reverse):
+                 mutate=mutate_reverse, mutation_end=None):
         self.flowers = flowers
         self.nb_flowers = len(flowers)
         self.distances = build_distance_matrix(flowers)
@@ -89,6 +89,7 @@ class Beehive:
         self.tournament_size = tournament_size
         self.mutation_rate = mutation_rate
         self.mutate = mutate
+        self.mutation_end = mutation_end
 
     def birth(self, order, parents=(None, None)):
         """Create a bee, compute its trip, and register it for the family tree"""
@@ -106,15 +107,24 @@ class Beehive:
         self.bees.sort()
         self.record()
 
+    def current_mutation_rate(self):
+        """Fixed rate, or a linear slide from mutation_rate to mutation_end"""
+        if self.mutation_end is None:
+            return self.mutation_rate
+        progress = (len(self.history) - 1) / NB_GENERATIONS
+        return self.mutation_rate + (self.mutation_end -
+    self.mutation_rate) * progress
+
     def next_generation(self):
         """Replace the colony by the elite plus their offspring."""
+        rate = self.current_mutation_rate()
         new_bees = self.bees[:self.nb_elites]
         while len (new_bees) < self.nb_bees:
             mother = tournament(self.bees, self.rng, self.tournament_size)
             father = tournament(self.bees, self.rng, self.tournament_size)
             cut = int(self.rng.integers(1, self.nb_flowers))
             order = crossover(mother.order, father.order, cut)
-            if self.rng.random() < self.mutation_rate:
+            if self.rng.random() < rate:
                 order = self.mutate(order, self.rng)
             new_bees.append(self.birth(order,
                                 parents=(mother.id, father.id)))

@@ -6,6 +6,7 @@ from beehive import Beehive, load_field
 from config import FLOWERS_PATH, NB_GENERATIONS
 
 SEEDS = range(5)
+BASELINE = {"tournament_size": 3, "mutation_rate": 0.3}
 
 
 def final_best(flowers, seed, **parameters):
@@ -18,13 +19,14 @@ def final_best(flowers, seed, **parameters):
 
 
 def sweep(flowers, name, values):
-    """Vary one parameter, average the result over the seeds."""
+    """Vary one parameter from a fixed baseline, average over the seeds."""
     print(f"\n--- {name} ---")
     for value in values:
-        results = [final_best(flowers, seed, **{name: value}) for seed in SEEDS]
+        results = [final_best(flowers, seed, **{**BASELINE, name: value})
+                   for seed in SEEDS]
         print(f"{name}={str(value):>5}   mean {np.mean(results):8.0f}"
               f"   std {np.std(results):6.0f}")
-
+        
 
 def sweep_pairs(flowers, pairs, seeds=range(12)):
     """Test parameter combinations, since one-at-a-time sweeps miss interactions."""
@@ -37,6 +39,15 @@ def sweep_pairs(flowers, pairs, seeds=range(12)):
         print(f"tournament={tournament_size:>3}  mutation={mutation_rate:>4}"
               f"   mean {np.mean(results):8.0f}   std {np.std(results):6.0f}")
 
+def sweep_schedules(flowers, schedules, seeds=range(12)):
+    """Fixed mutation rate versus a rate that changes over the generations."""
+    print("\n--- mutation schedules ---")
+    for start, end in schedules:
+        results = [final_best(flowers, seed, mutation_rate=start, mutation_end=end)
+                   for seed in seeds]
+        label = f"fixed {start}" if end is None else f"{start} -> {end}"
+        print(f"{label:>12}   mean {np.mean(results):8.0f}   std {np.std(results):6.0f}")
+
 
 def main():
     flowers = load_field(FLOWERS_PATH)
@@ -44,6 +55,7 @@ def main():
     sweep(flowers, "mutation_rate", [0.0, 0.1, 0.3, 0.5, 0.8, 1.0])
     sweep(flowers, "nb_elites", [0, 1, 5, 10, 25, 50])
     sweep_pairs(flowers, [(3, 0.3), (10, 0.5), (20, 0.7), (50, 0.9), (100, 0.9)])
+    sweep_schedules(flowers, [(0.7, None), (0.9, 0.3), (1.0, 0.2), (0.9, 0.5), (0.3, 0.9)])
 
 
 if __name__ == "__main__":
