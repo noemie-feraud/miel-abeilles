@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from config import BEEHIVE_POSITION
+from collections import Counter
 
 SURFACE = "#FBF6EC"
 INK = "#3E2A17"
@@ -15,6 +16,9 @@ MUTED = "#8A7256"
 GRID = "#E7DCC8"
 FLOWER = "#C2456E"
 HONEY = "#C97B0A"
+
+ROW_NAMES = ["best bee", "parents", "grandparents",
+             "great-grandparents", "great-great-grandparents"]
 
 def style(ax, title, subtitle):
     """Shared look: honey surface, recessive grid, left-aligned title."""
@@ -102,6 +106,51 @@ def plot_tour(flowers, order, length, path="figures/tour.png"):
     ax.set_ylabel("y", color=MUTED)
     ax.set_aspect("equal")
 
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+def plot_family_tree(tree, path="figures/family_tree.png"):
+    """Ancestors of the best bee; a bee met several times is outlined."""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    depth = max(generation for generation, _ in tree)
+    counts = Counter(bee.id for bee in tree.values())
+    positions = {(g, s): ((s + 0.5) / 2 ** g, -g) for g, s in tree}
+
+    fig, ax = plt.subplots(figsize=(13, 7))
+    fig.set_facecolor(SURFACE)
+    ax.set_facecolor(SURFACE)
+
+    for (g, s), (x, y) in positions.items():
+        for parent in ((g + 1, 2 * s), (g + 1, 2 * s + 1)):
+            if parent in positions:
+                px, py = positions[parent]
+                ax.plot([x, px], [y, py], color=GRID, linewidth=1.4, zorder=1)
+
+    for key, bee in tree.items():
+        x, y = positions[key]
+        repeated = counts[bee.id] > 1
+        color = FLOWER if key == (0, 0) else HONEY
+        ax.scatter(x, y, s=900 if key == (0, 0) else 520, marker="H", color=color,
+                   edgecolor=INK if repeated else SURFACE,
+                   linewidth=2.2 if repeated else 1.0, zorder=2)
+        ax.annotate(f"#{bee.id}\n{bee.distance:.0f}", (x, y), xytext=(0, -26),
+                    textcoords="offset points", ha="center", va="top",
+                    color=INK, fontsize=7.5)
+
+    for g in range(depth + 1):
+        ax.text(-0.02, -g, ROW_NAMES[g], ha="right", va="center",
+                color=MUTED, fontsize=10)
+
+    ax.set_title("Family tree of the best bee", color=INK, fontsize=14,
+                 fontweight="bold", loc="left", pad=22)
+    ax.text(0, 1.02, f"{len(tree)} places, only {len(counts)} distinct bees — "
+            "outlined hexagons appear more than once",
+            transform=ax.transAxes, color=MUTED, fontsize=10, va="bottom")
+
+    ax.set_xlim(-0.22, 1.0)
+    ax.set_ylim(-depth - 0.55, 0.45)
+    ax.axis("off")
     fig.tight_layout()
     fig.savefig(path, dpi=160)
     plt.close(fig)

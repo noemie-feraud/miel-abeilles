@@ -16,6 +16,11 @@ def load_field(path):
         raise ValueError(f"Unreadable coordinates in {path}")
     return data
 
+def generate_field(nb_flowers, seed):
+    """Random flower field in the same 1000 x 1000 square, reproducible by seed"""
+    rng = np.random.default_rng(seed)
+    return rng.uniform(0, 1000, size=(nb_flowers, 2)).round()
+
 def build_distance_matrix(flowers):
     """Pre-compute the distance between every pair of points. 
     Index 0 is the hive, indices 1..n are the flowwers.
@@ -77,6 +82,7 @@ class Beehive:
         self.distances = build_distance_matrix(flowers)
         self.bees = []
         self.history = []
+        self.registry = {}
         self.rng = np.random.default_rng(seed)
         self.nb_bees = nb_bees
         self.nb_elites = nb_elites
@@ -84,10 +90,15 @@ class Beehive:
         self.mutation_rate = mutation_rate
         self.mutate = mutate
 
+    def birth(self, order, parents=(None, None)):
+        """Create a bee, compute its trip, and register it for the family tree"""
+        bee = Bee(order, path_length(order, self.distances), parents=parents)
+        self.registry[bee.id] = bee
+        return bee
+
     def init_bee(self):
         """One bee with a random visiting order"""
-        order = self.rng.permutation(self.nb_flowers)
-        return Bee(order, path_length(order, self.distances))
+        return self.birth(self.rng.permutation(self.nb_flowers))
 
     def init_bees(self):
         """Build the starting colony, best bee first"""
@@ -105,8 +116,7 @@ class Beehive:
             order = crossover(mother.order, father.order, cut)
             if self.rng.random() < self.mutation_rate:
                 order = self.mutate(order, self.rng)
-            new_bees.append(Bee(order, 
-                                path_length(order, self.distances),
+            new_bees.append(self.birth(order,
                                 parents=(mother.id, father.id)))
         self.bees = sorted(new_bees)
         self.record()
@@ -125,5 +135,15 @@ self.bees[0].distance))
     def __str__(self):
         return f"Beehive: {self.nb_flowers} flowers, {len(self.bees)} bees"
 
-
-    
+    def family_tree(self, bee, depth):
+        """Ancestors of `bee`, `depth` generations back, as {(generation, slot): bee}."""
+        tree = {(0, 0): bee}
+        for generation in range(depth):
+            for slot in range(2 ** generation):
+                child = tree.get((generation, slot))
+                if child is None or child.parents[0] is None:
+                    continue
+                mother_id, father_id = child.parents
+                tree[(generation + 1, 2 * slot)] = self.registry[mother_id]
+                tree[(generation + 1, 2 * slot + 1)] = self.registry[father_id]
+        return tree
