@@ -69,13 +69,20 @@ def tournament(bees, rng, size):
 
 class Beehive:
     """Owns the flower field, the distance matrix, and the colony."""
-    def __init__(self, flowers, seed=None):
+    def __init__(self, flowers, seed=None, nb_bees=NB_BEES, nb_elites=NB_ELITES,
+                 tournament_size=TOURNAMENT_SIZE, mutation_rate=MUTATION_RATE,
+                 mutate=mutate_reverse):
         self.flowers = flowers
         self.nb_flowers = len(flowers)
         self.distances = build_distance_matrix(flowers)
         self.bees = []
         self.history = []
         self.rng = np.random.default_rng(seed)
+        self.nb_bees = nb_bees
+        self.nb_elites = nb_elites
+        self.tournament_size = tournament_size
+        self.mutation_rate = mutation_rate
+        self.mutate = mutate
 
     def init_bee(self):
         """One bee with a random visiting order"""
@@ -84,20 +91,20 @@ class Beehive:
 
     def init_bees(self):
         """Build the starting colony, best bee first"""
-        self.bees = [self.init_bee() for _ in range(NB_BEES)]
+        self.bees = [self.init_bee() for _ in range(self.nb_bees)]
         self.bees.sort()
         self.record()
 
     def next_generation(self):
-        """Replace the colony by the elite plus their offdpring."""
-        new_bees = self.bees[:NB_ELITES]
-        while len (new_bees) <NB_BEES:
-            mother = tournament(self.bees, self.rng, TOURNAMENT_SIZE)
-            father = tournament(self.bees, self.rng, TOURNAMENT_SIZE)
+        """Replace the colony by the elite plus their offspring."""
+        new_bees = self.bees[:self.nb_elites]
+        while len (new_bees) < self.nb_bees:
+            mother = tournament(self.bees, self.rng, self.tournament_size)
+            father = tournament(self.bees, self.rng, self.tournament_size)
             cut = int(self.rng.integers(1, self.nb_flowers))
             order = crossover(mother.order, father.order, cut)
-            if self.rng.random() < MUTATION_RATE:
-                order = mutate_reverse(order, self.rng)
+            if self.rng.random() < self.mutation_rate:
+                order = self.mutate(order, self.rng)
             new_bees.append(Bee(order, 
                                 path_length(order, self.distances),
                                 parents=(mother.id, father.id)))

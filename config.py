@@ -14,5 +14,5 @@ NB_GENERATIONS = 100
 
 # Genetic algorithm parameters.
 NB_ELITES = 10          # best bees carried over untouched
-TOURNAMENT_SIZE = 3     # selection pressure
-MUTATION_RATE = 0.3     # probability of mutating a newborn
+TOURNAMENT_SIZE = 20
+MUTATION_RATE = 0.7    # probability of mutating a newborn
