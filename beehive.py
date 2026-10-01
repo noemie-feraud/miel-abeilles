@@ -1,11 +1,25 @@
 """Honey and bees: the flower field and trip length computation."""
 
 import numpy as np
-from config import BEEHIVE_POSITION
-from bee import Bee
-from config import NB_BEES
-from config import NB_GENERATIONS, BEEHIVE_POSITION, NB_BEES, NB_ELITES, TOURNAMENT_SIZE, MUTATION_RATE 
+from config import (BEEHIVE_POSITION, MUTATION_RATE, NB_BEES, NB_ELITES,
+                    NB_GENERATIONS, TOURNAMENT_SIZE)
 
+class Bee:
+    """A bee is one visiting order of the flowers, plus its trip length."""
+
+    _counter = 0
+
+    def __init__(self, order, distance, parents=(None, None)):
+        Bee._counter += 1
+        self.id = Bee._counter
+        self.order = np.array(order, dtype=np.int64)
+        self.distance = float(distance)
+        self.parents = tuple(parents)
+    def __repr__(self):
+        return f"Bee#{self.id}({self.distance:.0f})"
+
+    def __lt__(self, other):
+        return self.distance < other.distance
 
 def load_field(path):
     """read the flower file and return an (n, 2) array of coordinates"""

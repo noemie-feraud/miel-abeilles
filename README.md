@@ -52,8 +52,7 @@ uv run python study.py    # l'étude des paramètres (environ 2 minutes)
 | Fichier | Rôle |
 |---|---|
 | `config.py` | Tous les paramètres, au même endroit |
-| `bee.py` | La classe `Bee` : un ordre de visite, sa longueur, ses parents |
-| `beehive.py` | Le champ, la matrice de distances, la colonie, les opérateurs et le registre généalogique |
+| `beehive.py` | La classe `Bee`, le champ, la matrice de distances, la colonie, les opérateurs et le registre généalogique |
 | `plots.py` | Les quatre figures |
 | `study.py` | L'étude des paramètres |
 | `main.py` | Point d'entrée |
